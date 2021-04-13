@@ -3,7 +3,7 @@ unit UMainForm;
 interface
 
 uses
-  UORM,
+  UGeneralORM, UAlunoORM,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, FireDAC.Stan.Intf,
@@ -12,30 +12,25 @@ uses
   FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.Grids, Vcl.DBGrids,
-  Vcl.StdCtrls;
+  Vcl.StdCtrls, Vcl.ComCtrls;
 
 type
   TFMain = class(TForm)
     DBGrid1: TDBGrid;
     FDConnection1: TFDConnection;
-    FDQListagem: TFDQuery;
+    FDQAluno: TFDQuery;
     DataSource: TDataSource;
-    edtIdCurso: TEdit;
-    edtCurso: TEdit;
     btAdd: TButton;
     FDQComandos: TFDQuery;
-    btDelete: TButton;
-    btUpdate: TButton;
+    btList: TButton;
     procedure btAddClick(Sender: TObject);
-    Procedure BdCall;
-    procedure DataSourceDataChange(Sender: TObject; Field: TField);
-    procedure btDeleteClick(Sender: TObject);
-    procedure btUpdateClick(Sender: TObject);
+    procedure btListClick(Sender: TObject);
+
   private
     { Private declarations }
   public
     { Public declarations }
-    idcursobd, cursobd: String;
+
   end;
 
 var
@@ -45,56 +40,43 @@ implementation
 
 {$R *.dfm}
 
-procedure TFMain.BdCall;
-begin
-  idcursobd := FDQListagem.FieldByName('IDCURSO').AsString;
-  cursobd := FDQListagem.FieldByName('CURSO').AsString;
-  edtIdCurso.Text := idcursobd;
-  edtCurso.Text := cursobd;
-
-end;
-
 procedure TFMain.btAddClick(Sender: TObject);
 var
-  Obj: TCursoSQL;
+  Aluno: TAluno;
 begin
-  Obj := TCursoSQL.Create;
-  Obj.Conexao := FDConnection1;
-  Obj.IdCurso := strtoint(edtIdCurso.Text);
-  Obj.Descricao := edtCurso.Text;
-  Obj.Insert;
-  FDQListagem.Close;
-  FDQListagem.Open;
-  Obj.Free;
+
+  Aluno := TAluno.Create;
+  Aluno.conn := FDConnection1;
+  Aluno.QueryORM := FDQAluno;
+  Aluno.ID_Aluno.Value := 24;
+  Aluno.Nome_Aluno.Value := 'Andriws';
+  Aluno.Curso.Value := 'Banco de Dados';
+  Aluno.Turno.Value := 'N';
+  Aluno.Periodo.Value := 2;
+  Aluno.Data_Ingresso.Value := now;
+  Aluno.Situacao.Value := 'R';
+  // Aluno.Cadeirante.Value := False;
+  // Aluno.Observacao.Value := 'Aluno bom e novo';
+  Aluno.Data_Hora_Inclusao.Value := now;
+  Aluno.Usuario_Inclusao.Value := 'Admin';
+  Aluno.Data_Hora_Alteracao.Value := now;
+  Aluno.Usuario_Alteracao.Value := 'Andriws';
+  Aluno.Insert;
+  Aluno.List; // TESTE
+  Aluno.Free;
+
 end;
 
-procedure TFMain.btDeleteClick(Sender: TObject);
+procedure TFMain.btListClick(Sender: TObject); // TESTE
 var
-  Obj: TCursoSQL;
+  Aluno: TAluno;
 begin
-  Obj := TCursoSQL.Create;
-  Obj.Conexao := FDConnection1;
-  Obj.Delete(idcursobd.ToInteger());
-  FDQListagem.Close;
-  FDQListagem.Open;
-  Obj.Free;
-end;
+  Aluno := TAluno.Create;
+  Aluno.conn := FDConnection1;
+  Aluno.QueryORM := FDQAluno;
+  Aluno.List;
+  Aluno.Free;
 
-procedure TFMain.btUpdateClick(Sender: TObject);
-var
-  Obj: TCursoSQL;
-begin
-  Obj := TCursoSQL.Create;
-  Obj.Conexao := FDConnection1;
-  Obj.Update(idcursobd.ToInteger(), edtCurso.Text);
-  FDQListagem.Close;
-  FDQListagem.Open;
-  Obj.Free;
-end;
-
-procedure TFMain.DataSourceDataChange(Sender: TObject; Field: TField);
-begin
-  BdCall;
 end;
 
 end.
